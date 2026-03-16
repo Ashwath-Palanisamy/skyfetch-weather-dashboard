@@ -1,0 +1,86 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  color: #f7f6ff;
+  background: linear-gradient(135deg, #43236b, #69339a, #9d56d4);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: min(100%, 500px);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(8px);
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.1rem;
+}
+
+.tagline {
+  margin: 8px 0 20px;
+  color: #ece6ff;
+}
+
+#weather-display {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading {
+  margin: 0;
+  color: #ece6ff;
+}
+
+.weather-info {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.weather-icon {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+.city-name {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.temperature {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #ffd36e;
+}
+
+.description {
+  margin: 0;
+  text-transform: capitalize;
+  color: #ece6ff;
+}
+
+@media (max-width: 560px) {
+  .container {
+    padding: 20px;
+  }
+
+  .weather-icon {
+    width: 76px;
+    height: 76px;
+  }
+}
