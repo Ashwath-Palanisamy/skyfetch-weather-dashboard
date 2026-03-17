@@ -17,23 +17,114 @@ function WeatherApp() {
     this.lastCity = 'London';
 }
 
-// Initialize app and event listeners
-WeatherApp.prototype.init = function() {
-    this.searchButton.addEventListener('click', this.handleSearch.bind(this));
+const weatherDisplay = document.getElementById('weather-display');
+const cityInput = document.querySelector('.search-section #city-input');
+const searchButton = document.getElementById('search-btn');
+const statusMessage = document.getElementById('status-message');
+const unitButtons = document.querySelectorAll('.unit-btn');
+const cityChips = document.querySelectorAll('.city-chip');
+const recentSearchesSection = document.getElementById('recent-searches-section');
+const recentSearchesList = document.getElementById('recent-searches-list');
+const clearHistoryBtn = document.getElementById('clear-history-btn');
 
-    this.cityInput.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            this.handleSearch();
-        }
-    }.bind(this));
+const RECENT_SEARCHES_KEY = 'recentSearches';
+const LAST_CITY_KEY = 'lastCity';
+const MAX_RECENT_SEARCHES = 5;
 
-    this.cityChips.forEach(function(chip) {
-        chip.addEventListener('click', function() {
-            const city = chip.dataset.city;
-            this.cityInput.value = city;
-            this.getWeather(city);
-        }.bind(this));
-    }.bind(this));
+const appState = {
+    unit: 'metric',
+    lastCity: ''
+};
+
+function capitalizeWords(str) {
+    return str.replace(/\w\S*/g, function(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    });
+}
+
+function loadRecentSearches() {
+    try {
+        return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveRecentSearch(city) {
+    const formattedCity = capitalizeWords(city);
+    let searches = loadRecentSearches();
+
+    searches = searches.filter(function(c) {
+        return c.toLowerCase() !== formattedCity.toLowerCase();
+    });
+    searches.unshift(formattedCity);
+
+    if (searches.length > MAX_RECENT_SEARCHES) {
+        searches = searches.slice(0, MAX_RECENT_SEARCHES);
+    }
+
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+    localStorage.setItem(LAST_CITY_KEY, formattedCity);
+    appState.lastCity = formattedCity;
+    displayRecentSearches(searches);
+}
+
+function displayRecentSearches(searches) {
+    if (!searches) {
+        searches = loadRecentSearches();
+    }
+
+    if (searches.length === 0) {
+        recentSearchesSection.classList.remove('visible');
+        recentSearchesList.innerHTML = '';
+        return;
+    }
+
+    recentSearchesSection.classList.add('visible');
+    recentSearchesList.innerHTML = '';
+
+    searches.forEach(function(city) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'recent-search-btn';
+        btn.textContent = city;
+        btn.addEventListener('click', function() {
+            cityInput.value = city;
+            getWeather(city);
+        });
+        recentSearchesList.appendChild(btn);
+    });
+}
+
+function clearHistory() {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+    localStorage.removeItem(LAST_CITY_KEY);
+    appState.lastCity = '';
+    displayRecentSearches([]);
+}
+
+function loadLastCity() {
+    const lastCity = localStorage.getItem(LAST_CITY_KEY);
+    if (lastCity) {
+        appState.lastCity = lastCity;
+        getWeather(lastCity);
+    } else {
+        weatherDisplay.innerHTML = `
+            <div class="welcome-message">
+                <p class="welcome-emoji">🌤️</p>
+                <h3>Welcome to SkyFetch</h3>
+                <p>Enter a city name to get started!</p>
+            </div>
+        `;
+    }
+}
+
+function formatTime(unixSeconds) {
+    return new Date(unixSeconds * 1000).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
 
     this.unitButtons.forEach(function(button) {
         button.addEventListener('click', function() {
@@ -119,19 +210,10 @@ WeatherApp.prototype.getWeather = async function(city) {
     const weatherUrl = `${API_URL}?q=${encodeURIComponent(normalizedCity)}&appid=${API_KEY}&units=${this.unit}`;
     const forecastUrl = `${FORECAST_URL}?q=${encodeURIComponent(normalizedCity)}&appid=${API_KEY}&units=${this.unit}`;
 
-    try {
-        const [weatherResponse, forecastResponse] = await Promise.all([
-            axios.get(weatherUrl, { timeout: 8000 }),
-            axios.get(forecastUrl, { timeout: 8000 })
-        ]);
-
-        console.log('Weather Data:', weatherResponse.data);
-        console.log('Forecast Data:', forecastResponse.data);
-
-        this.displayWeather(weatherResponse.data);
-        this.displayForecast(forecastResponse.data);
-        this.lastCity = weatherResponse.data.name;
-        this.setStatus(`Weather updated for ${weatherResponse.data.name}.`, 'success');
+        console.log('Weather Data:', response.data);
+        displayWeather(response.data);
+        saveRecentSearch(response.data.name);
+        setStatus(`Weather updated for ${response.data.name}.`, 'success');
     } catch (error) {
         console.error('Error fetching weather:', error);
         if (error.response && error.response.status === 404) {
@@ -300,23 +382,14 @@ WeatherApp.prototype.setStatus = function(message, type) {
     this.statusMessage.textContent = message;
     this.statusMessage.className = 'status-message';
 
-    if (type === 'success') {
-        this.statusMessage.classList.add('success');
-    }
-
-    if (type === 'error') {
-        this.statusMessage.classList.add('error');
-    }
-};
-
-// Format unix timestamp to time string
-WeatherApp.prototype.formatTime = function(unixSeconds) {
-    return new Date(unixSeconds * 1000).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit'
+        if (appState.lastCity) {
+            getWeather(appState.lastCity);
+        }
     });
-};
+});
 
-// Create a single instance and initialize
-const app = new WeatherApp();
-app.init();
+clearHistoryBtn.addEventListener('click', clearHistory);
+
+displayRecentSearches();
+loadLastCity();
+
