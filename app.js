@@ -7,11 +7,101 @@ const searchButton = document.getElementById('search-btn');
 const statusMessage = document.getElementById('status-message');
 const unitButtons = document.querySelectorAll('.unit-btn');
 const cityChips = document.querySelectorAll('.city-chip');
+const recentSearchesSection = document.getElementById('recent-searches-section');
+const recentSearchesList = document.getElementById('recent-searches-list');
+const clearHistoryBtn = document.getElementById('clear-history-btn');
+
+const RECENT_SEARCHES_KEY = 'recentSearches';
+const LAST_CITY_KEY = 'lastCity';
+const MAX_RECENT_SEARCHES = 5;
 
 const appState = {
     unit: 'metric',
-    lastCity: 'London'
+    lastCity: ''
 };
+
+function capitalizeWords(str) {
+    return str.replace(/\w\S*/g, function(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    });
+}
+
+function loadRecentSearches() {
+    try {
+        return JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveRecentSearch(city) {
+    const formattedCity = capitalizeWords(city);
+    let searches = loadRecentSearches();
+
+    searches = searches.filter(function(c) {
+        return c.toLowerCase() !== formattedCity.toLowerCase();
+    });
+    searches.unshift(formattedCity);
+
+    if (searches.length > MAX_RECENT_SEARCHES) {
+        searches = searches.slice(0, MAX_RECENT_SEARCHES);
+    }
+
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(searches));
+    localStorage.setItem(LAST_CITY_KEY, formattedCity);
+    appState.lastCity = formattedCity;
+    displayRecentSearches(searches);
+}
+
+function displayRecentSearches(searches) {
+    if (!searches) {
+        searches = loadRecentSearches();
+    }
+
+    if (searches.length === 0) {
+        recentSearchesSection.classList.remove('visible');
+        recentSearchesList.innerHTML = '';
+        return;
+    }
+
+    recentSearchesSection.classList.add('visible');
+    recentSearchesList.innerHTML = '';
+
+    searches.forEach(function(city) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'recent-search-btn';
+        btn.textContent = city;
+        btn.addEventListener('click', function() {
+            cityInput.value = city;
+            getWeather(city);
+        });
+        recentSearchesList.appendChild(btn);
+    });
+}
+
+function clearHistory() {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+    localStorage.removeItem(LAST_CITY_KEY);
+    appState.lastCity = '';
+    displayRecentSearches([]);
+}
+
+function loadLastCity() {
+    const lastCity = localStorage.getItem(LAST_CITY_KEY);
+    if (lastCity) {
+        appState.lastCity = lastCity;
+        getWeather(lastCity);
+    } else {
+        weatherDisplay.innerHTML = `
+            <div class="welcome-message">
+                <p class="welcome-emoji">🌤️</p>
+                <h3>Welcome to SkyFetch</h3>
+                <p>Enter a city name to get started!</p>
+            </div>
+        `;
+    }
+}
 
 function formatTime(unixSeconds) {
     return new Date(unixSeconds * 1000).toLocaleTimeString([], {
@@ -90,7 +180,7 @@ async function getWeather(city) {
 
         console.log('Weather Data:', response.data);
         displayWeather(response.data);
-        appState.lastCity = response.data.name;
+        saveRecentSearch(response.data.name);
         setStatus(`Weather updated for ${response.data.name}.`, 'success');
     } catch (error) {
         console.error('Error fetching weather:', error);
@@ -219,14 +309,14 @@ unitButtons.forEach(function(button) {
             unitButton.classList.toggle('active', unitButton.dataset.unit === appState.unit);
         });
 
-        getWeather(appState.lastCity);
+        if (appState.lastCity) {
+            getWeather(appState.lastCity);
+        }
     });
 });
 
-weatherDisplay.innerHTML = `
-    <div class="welcome-message">
-        <p class="welcome-emoji">🌤️</p>
-        <h3>Welcome to SkyFetch</h3>
-        <p>Enter a city name to get started!</p>
-    </div>
-`;
+clearHistoryBtn.addEventListener('click', clearHistory);
+
+displayRecentSearches();
+loadLastCity();
+

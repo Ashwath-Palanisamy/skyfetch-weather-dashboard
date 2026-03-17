@@ -317,6 +317,71 @@ h1 {
   font-weight: 600;
 }
 
+.recent-searches-section {
+  display: none;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--surface-border);
+  text-align: left;
+}
+
+.recent-searches-section.visible {
+  display: block;
+}
+
+.recent-searches-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.recent-searches-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--subtle);
+}
+
+.clear-history-btn {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--text);
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.clear-history-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.recent-searches-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recent-search-btn {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--text);
+  background: var(--chip-bg);
+  transition: background-color 0.2s ease;
+}
+
+.recent-search-btn:hover {
+  background: var(--chip-bg-hover);
+}
+
 @media (max-width: 560px) {
   .container {
     padding: 20px;
