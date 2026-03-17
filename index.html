@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyFetch - Weather Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>SkyFetch</h1>
+        <p class="tagline">Your Personal Weather Dashboard</p>
+
+        <form id="weather-form" class="weather-form" aria-label="Search weather by city">
+            <input
+                type="text"
+                id="city-input"
+                name="city"
+                placeholder="Search city..."
+                autocomplete="off"
+                required
+            >
+            <button type="submit" id="search-button">Search</button>
+        </form>
+
+        <div class="quick-cities" aria-label="Quick city shortcuts">
+            <button class="city-chip" data-city="London" type="button">London</button>
+            <button class="city-chip" data-city="Paris" type="button">Paris</button>
+            <button class="city-chip" data-city="New York" type="button">New York</button>
+            <button class="city-chip" data-city="Tokyo" type="button">Tokyo</button>
+        </div>
+
+        <div class="unit-toggle" role="group" aria-label="Temperature unit toggle">
+            <button type="button" class="unit-btn active" data-unit="metric">°C</button>
+            <button type="button" class="unit-btn" data-unit="imperial">°F</button>
+        </div>
+
+        <p id="status-message" class="status-message" aria-live="polite"></p>
+
+        <div id="weather-display">
+            <p class="loading">Loading weather data...</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
