@@ -2,9 +2,8 @@ const API_KEY = 'b7d2e9ea0d6559490a94fd7d7b4381df';
 const API_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
 const weatherDisplay = document.getElementById('weather-display');
-const weatherForm = document.getElementById('weather-form');
-const cityInput = document.getElementById('city-input');
-const searchButton = document.getElementById('search-button');
+const cityInput = document.querySelector('.search-section #city-input');
+const searchButton = document.getElementById('search-btn');
 const statusMessage = document.getElementById('status-message');
 const unitButtons = document.querySelectorAll('.unit-btn');
 const cityChips = document.querySelectorAll('.city-chip');
@@ -34,53 +33,87 @@ function setStatus(message, type) {
     }
 }
 
-function setLoading(isLoading) {
-    searchButton.disabled = isLoading;
-    searchButton.textContent = isLoading ? 'Searching...' : 'Search';
+function showLoading() {
+    const loadingHTML = `
+        <div class="loading-container" role="status" aria-live="polite">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <p class="loading-text">Loading weather data...</p>
+        </div>
+    `;
 
-    if (isLoading) {
-        weatherDisplay.innerHTML = '<p class="loading">Loading weather data...</p>';
+    weatherDisplay.innerHTML = loadingHTML;
+}
+
+function setLoading(isLoading) {
+    if (searchButton) {
+        searchButton.disabled = isLoading;
+        searchButton.textContent = isLoading ? 'Searching...' : 'Search';
     }
 }
 
-function getWeather(city) {
+function showError(message) {
+    const errorHTML = `
+        <div class="error-message" role="alert" aria-live="assertive">
+            <p class="error-icon">⚠️</p>
+            <h3 class="error-title">Weather Lookup Failed</h3>
+            <p class="error-text">${message}</p>
+        </div>
+    `;
+
+    weatherDisplay.innerHTML = errorHTML;
+}
+
+async function getWeather(city) {
+    const normalizedCity = city.trim();
+
+    if (!normalizedCity) {
+        const message = 'Please enter a city name.';
+        setStatus(message, 'error');
+        showError(message);
+        return;
+    }
+
+    if (normalizedCity.length < 2) {
+        const message = 'City name too short. Please enter at least 2 characters.';
+        setStatus(message, 'error');
+        showError(message);
+        return;
+    }
+
     setLoading(true);
     setStatus('', null);
+    showLoading();
+    const url = `${API_URL}?q=${encodeURIComponent(normalizedCity)}&appid=${API_KEY}&units=${appState.unit}`;
 
-    axios.get(API_URL, {
-        params: {
-            q: city,
-            appid: API_KEY,
-            units: appState.unit
-        },
-        timeout: 8000
-    })
-        .then(function(response) {
-            console.log('Weather Data:', response.data);
-            displayWeather(response.data);
-            appState.lastCity = response.data.name;
-            setStatus(`Weather updated for ${response.data.name}.`, 'success');
-        })
-        .catch(function(error) {
-            console.error('Error fetching weather:', error);
-            weatherDisplay.innerHTML =
-                '<p class="loading">Could not fetch weather data. Please try again.</p>';
+    try {
+        const response = await axios.get(url, { timeout: 8000 });
 
-            if (error.response && error.response.status === 404) {
-                setStatus('City not found. Check spelling and try again.', 'error');
-                return;
-            }
+        console.log('Weather Data:', response.data);
+        displayWeather(response.data);
+        appState.lastCity = response.data.name;
+        setStatus(`Weather updated for ${response.data.name}.`, 'success');
+    } catch (error) {
+        console.error('Error fetching weather:', error);
+        if (error.response && error.response.status === 404) {
+            const message = 'City not found. Check spelling and try again.';
+            setStatus(message, 'error');
+            showError(message);
+            return;
+        }
 
-            if (error.code === 'ECONNABORTED') {
-                setStatus('Request timed out. Please check your connection.', 'error');
-                return;
-            }
+        if (error.code === 'ECONNABORTED') {
+            const message = 'Request timed out. Please check your connection.';
+            setStatus(message, 'error');
+            showError(message);
+            return;
+        }
 
-            setStatus('Unable to fetch weather right now.', 'error');
-        })
-        .finally(function() {
-            setLoading(false);
-        });
+        const message = 'Unable to fetch weather right now. Please try again shortly.';
+        setStatus(message, 'error');
+        showError(message);
+    } finally {
+        setLoading(false);
+    }
 }
 
 function displayWeather(data) {
@@ -127,19 +160,43 @@ function displayWeather(data) {
     `;
 
     weatherDisplay.innerHTML = weatherHTML;
+    cityInput.focus();
 }
 
-weatherForm.addEventListener('submit', function(event) {
-    event.preventDefault();
-
+function handleSearch() {
     const city = cityInput.value.trim();
 
     if (!city) {
-        setStatus('Please enter a city name.', 'error');
+        const message = 'Please enter a city name.';
+        setStatus(message, 'error');
+        showError(message);
+        cityInput.focus();
+        return;
+    }
+
+    if (city.length < 2) {
+        const message = 'City name too short. Please enter at least 2 characters.';
+        setStatus(message, 'error');
+        showError(message);
+        cityInput.focus();
+        cityInput.select();
+        return;
+    }
+
+    if (searchButton.disabled) {
         return;
     }
 
     getWeather(city);
+    cityInput.value = '';
+}
+
+searchButton.addEventListener('click', handleSearch);
+
+cityInput.addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        handleSearch();
+    }
 });
 
 cityChips.forEach(function(chip) {
@@ -166,4 +223,10 @@ unitButtons.forEach(function(button) {
     });
 });
 
-getWeather('London');
+weatherDisplay.innerHTML = `
+    <div class="welcome-message">
+        <p class="welcome-emoji">🌤️</p>
+        <h3>Welcome to SkyFetch</h3>
+        <p>Enter a city name to get started!</p>
+    </div>
+`;

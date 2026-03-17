@@ -145,12 +145,113 @@ h1 {
   color: var(--error);
 }
 
+.search-section {
+  margin-bottom: 30px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-section #city-input {
+  flex: 1;
+  padding: 12px 20px;
+  border: 2px solid #ddd;
+  border-radius: 25px;
+  font-size: 1rem;
+  color: #163f6b;
+  background: #f7fbff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-section #city-input:focus {
+  outline: none;
+  border-color: #79beff;
+  box-shadow: 0 0 0 3px rgba(121, 190, 255, 0.25);
+}
+
+#search-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #4e93d4, #154a8f);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#search-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
 #weather-display {
   min-height: 230px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 4px;
+}
+
+.error-message {
+  width: 100%;
+  padding: 16px;
+  border-left: 6px solid #c93b2f;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffe0dc, #ffd4bf);
+  color: #6e1f19;
+  text-align: left;
+  box-shadow: 0 8px 22px rgba(106, 35, 28, 0.18);
+}
+
+.error-icon {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.error-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.error-text {
+  margin: 0;
+  font-size: 0.96rem;
+  line-height: 1.4;
+}
+
+.loading-container {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.spinner,
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin: 0;
+  color: var(--subtle);
+  font-weight: 600;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading {
@@ -219,6 +320,15 @@ h1 {
 @media (max-width: 560px) {
   .container {
     padding: 20px;
+  }
+
+  .search-section {
+    flex-direction: column;
+  }
+
+  .search-section #city-input,
+  #search-btn {
+    width: 100%;
   }
 
   .weather-form {
