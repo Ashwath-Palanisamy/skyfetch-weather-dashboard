@@ -11,17 +11,14 @@
         <h1>SkyFetch</h1>
         <p class="tagline">Your Personal Weather Dashboard</p>
 
-        <form id="weather-form" class="weather-form" aria-label="Search weather by city">
+        <div class="search-section">
             <input
                 type="text"
                 id="city-input"
-                name="city"
-                placeholder="Search city..."
-                autocomplete="off"
-                required
+                placeholder="Enter city name..."
             >
-            <button type="submit" id="search-button">Search</button>
-        </form>
+            <button id="search-btn" type="button">Search</button>
+        </div>
 
         <div class="quick-cities" aria-label="Quick city shortcuts">
             <button class="city-chip" data-city="London" type="button">London</button>
